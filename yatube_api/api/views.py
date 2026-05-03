@@ -13,7 +13,6 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering_fields = ('pub_date', )
     search_fields = ('text', )  
 
-
     def perfom_create(self, serializer):
         serializer.save(author=self.request.user)
     
