@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters, permissions
-from rest_framework import IsAuthenticatedOrReadOnly
-from posts.models import Post, Comment, Follow
-from posts.serializers import PostSerializer, CommentSerializer, FollowSerializer
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from posts.models import Post, Comment, Follow, Group
+from posts.serializers import PostSerializer, CommentSerializer, FollowSerializer, GroupSerializer
 from .permissions import IsAuthOrReadOnly
 
 
@@ -30,7 +30,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user,
                         post_id=self.kwargs.get('post_id'))
-    
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    filter_backends = (filters.SearchFilter, )
+    search_filter = ('title', ) 
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
@@ -39,7 +45,7 @@ class FollowViewSet(viewsets.ModelViewSet):
     search_object = ('following__username', )
 
     def get_queryset(self):
-        user_id = self.request.user.follower.all()
+        return self.request.user.follower.all()
 
     def perfom_create(self, serializer):
         serializer.save(

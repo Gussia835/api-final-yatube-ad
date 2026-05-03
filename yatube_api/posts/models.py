@@ -28,6 +28,18 @@ class Comment(models.Model):
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
     
+class Group(models.Model):
+    title = models.CharField('Название', max_length=200)
+    slug = models.SlugField('Идентификатор', unique=True)
+    description = models.TextField('Описание')
+
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
+    def __str__(self):
+        return self.title
+
 
 class Follow(models.Model):
     user = models.ForeignKey(
@@ -42,9 +54,8 @@ class Follow(models.Model):
         related_name = 'following',
         verbose_name = 'Автор'
     )
-
     class Meta:
-        constraits = [
+        constraints = [
             models.UniqueConstraint(
                 fields=['user', 'following'],
                 name='unique_follow'
