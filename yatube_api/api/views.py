@@ -11,16 +11,18 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthOrReadOnly, IsAuthenticatedOrReadOnly) 
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     ordering_fields = ('pub_date', )
-    search_fields = ('text', )  
+    search_fields = ('text', )
+    pagination_class = None
 
-    def perfom_create(self, serializer):
+    def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthOrReadOnly, IsAuthenticatedOrReadOnly)
     ordering_fields = ('pub_date', )
+    pagination_class = None
 
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
@@ -31,22 +33,27 @@ class CommentViewSet(viewsets.ModelViewSet):
                         post_id=self.kwargs.get('post_id'))
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     filter_backends = (filters.SearchFilter, )
     search_filter = ('title', ) 
+    pagination_class = None
+
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
-    permissions_classes = (permissions.IsAuthenticated, )
-    filter_backends = (filters.SearchFilter, )
-    search_object = ('following__username', )
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('following__username',)
+    pagination_class = None
 
     def get_queryset(self):
-        return self.request.user.follower.all()
+        if self.request.user.is_authenticated:
+            return self.request.user.follower.all()
+        return Follow.objects.none()
 
-    def perfom_create(self, serializer):
+    def perform_create(self, serializer):
         serializer.save(
             user=self.request.user
         )

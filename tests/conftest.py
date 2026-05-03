@@ -1,6 +1,10 @@
 import sys
 import os
+import django
+from django.conf import settings
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'yatube_api.settings')
+django.setup()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
