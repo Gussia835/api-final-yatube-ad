@@ -7,6 +7,8 @@ from posts.serializers import (
     FollowSerializer, GroupSerializer
 )
 from .permissions import IsAuthOrReadOnly
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -19,6 +21,24 @@ class PostViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     ordering_fields = ('pub_date',)
     search_fields = ('text',)
+    pagination_class = LimitOffsetPagination
+
+    def list(self, request, *args, **kwargs):
+        if 'limit' in request.query_params or 'offset' in request.query_params:
+            paginator = LimitOffsetPagination()
+            paginator.default_limit = 10
+            queryset = self.filter_queryset(self.get_queryset())
+            page = paginator.paginate_queryset(queryset, request, view=self)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
